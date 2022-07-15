@@ -13,10 +13,17 @@ func getOne(id int64) user {
 	return user{ID: id}
 }
 
-func getBatch(n int64, pool int64) (res []user) {
+func getBatch(n int64, pool int64) []user {
+	ch := make(chan user, pool)
 	for i := int64(0); i < n; i++ {
-		res = append(res, getOne(i))
+		go func(id int64) {
+			ch <- getOne(id)
+		}(i)
 	}
+	res := make([]user, 0, n)
+	for i := int64(0); i < n; i++ {
 
-	return
+		res = append(res, <-ch)
+	}
+	return res
 }
